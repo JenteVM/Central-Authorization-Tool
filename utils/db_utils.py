@@ -26,7 +26,7 @@ else:
     limiter = Limiter(
         get_remote_address,
         app=app,
-        storage_uri="redis://localhost:6379",
+        storage_uri="memory://", #In production, consider using a more persistent storage like Redis
         strategy="fixed-window",
     )
 

@@ -1,0 +1,16 @@
+notations: integer OR string
+
+integer: allow_key AND hierachry
+string: translation_key AND allow_key AND hierachry
+
+translation_key: {stringN: integerN}
+allow_key: {location*: {smaller_than: integer**, bigger_than: integer**, allow: list**, ban: list**}}
+hierachry: {main: option***, advanced****: {location*: {integer*: {greater_than: integer**, smaller_than: integer**, allow: list**, ban: list**}}}, except: list**}
+*can be "else"
+**optional string if notation is string (can be self in case of hierachry)
+***either smaller_than (your int smaller than theirs), bigger_than (your int bigger than theirs), advanced (case to case basis)
+****can leave empty if main is not advanced
+
+examples:
+{"notation": "integer", "allow_key": {"else": {"smaller_than": null, "bigger_than": 16, "allow": [12], "ban": [20]}}, "hierachry": {"main": "bigger_than", "except": [1]}}
+{"notation": "string", "translation_key": {"user": 0, "admin": 1, "special": 5, "someone_else": 10}, "allow_key": {"get_all": {"smaller_than": 5, "bigger_than": null, "allow": [5], "ban": null}, "else": {"smaller_than": null, "bigger_than": null, "allow": ["someone_else"], "ban": ["special"]}}, "hierarchy": {"main": "smaller_than", "except": ["special"]}}

@@ -1,6 +1,6 @@
 from flask_restful import Resource, reqparse, fields, marshal_with
 from flask import abort
-from services.user_service import get_all_users, get_user_by, create_user, update_user, delete_user, validate_auth_token
+from services.user_service import get_all_users, get_user_by, create_user, update_user, delete_user, validate_auth_token, validate_actions, get_auth_token
 from services.registry_service import check_post_level_auth, check_get_level_auth
 from utils.db_utils import limiter
 from werkzeug.security import check_password_hash
@@ -9,12 +9,11 @@ user_args = reqparse.RequestParser()
 user_args.add_argument("username", type=str, required=True, help="Name is required.")
 user_args.add_argument("email", type=str)
 user_args.add_argument("password", type=str, required=True, help="Password is required.")
-user_args.add_argument("auth_level", type=str, default="user")
+user_args.add_argument("auth_level", type=str)
 
 user_auth_args = reqparse.RequestParser()
 user_auth_args.add_argument("username_or_email", type=str, default=None)
 user_auth_args.add_argument("password", type=str, default=None)
-user_auth_args.add_argument("user_id", type=str, default=None)
 
 user_creation_fields = {
     "user_id": fields.String,
@@ -44,6 +43,8 @@ class UserListResource(Resource): #allows all CRUD operations on all of the user
     def get(self, db_id):
         if not check_get_level_auth(db_id):
             abort(403, description="Unauthorized Origin.")
+        if not validate_auth_token(db_id, get_auth_token()):
+            return abort(403, description="Invalid or expired token.")
         return get_all_users(db_id), 200
     
     @marshal_with(user_creation_fields)
@@ -51,7 +52,11 @@ class UserListResource(Resource): #allows all CRUD operations on all of the user
     def post(self, db_id):
         if not check_post_level_auth(db_id):
             abort(403, description="Unauthorized Origin.")
+        if not validate_auth_token(db_id, get_auth_token()):
+            return abort(403, description="Invalid or expired token.")
         args = user_args.parse_args()
+        if not args["auth_level"]:
+            abort(400, description="auth_level is a required field.")
         new_user = create_user(
             db_id,
             username=args["username"],
@@ -67,6 +72,8 @@ class UserLookupResource(Resource): #queries a singular user instance
     def get(self, db_id, id_method, identifier):
         if not check_get_level_auth(db_id):
             abort(403, description="Unauthorized Origin.")
+        if not validate_auth_token(db_id, get_auth_token()):
+            return abort(403, description="Invalid or expired token.")
         user = get_user_by(db_id, id_method, identifier)
         if user is not None:
             return user
@@ -77,6 +84,8 @@ class UserLookupResource(Resource): #queries a singular user instance
     def patch(self, db_id, id_method, identifier):
         if not check_post_level_auth(db_id):
             abort(403, description="Unauthorized Origin.")
+        if not validate_auth_token(db_id, get_auth_token()):
+            return abort(403, description="Invalid or expired token.")
         args = user_args.parse_args()
         user = get_user_by(db_id, id_method, identifier)
         if user is None:
@@ -95,35 +104,42 @@ class UserLookupResource(Resource): #queries a singular user instance
     def delete(self, db_id, id_method, identifier):
         if not check_post_level_auth(db_id):
             abort(403, description="Unauthorized Origin.")
+        if not validate_auth_token(db_id, get_auth_token()):
+            return abort(403, description="Invalid or expired token.")
         success = delete_user(db_id, id_method, identifier)
         return success, 200
 
 class UserAuthenticateResource(Resource): #authenticates a user against the database
     @marshal_with(auth_token_fields)
     @limiter.limit("2 per second;10 per minute")
-    def post(self, db_id, time_extension:int, token):
+    def post(self, db_id, method, time_extension:int):
         if not check_post_level_auth(db_id):
             abort(403, description="Unauthorized Origin.")
         args = user_auth_args.parse_args()
-        if token == "0":
+        if method == "create" or method == "login":
             id_method = "username"
             identifier = args["username_or_email"]
             user = get_user_by(db_id, id_method, identifier)
-            if user is not None:
+            if user is None:
+                id_method = "email"
+                user = get_user_by(db_id, id_method, identifier)
+            if user is not None:    
                 if check_password_hash(user.password_hash, args["password"]):
                     authorized_user = update_user(db_id, user.user_id, time_extension=time_extension)
                     return authorized_user
                 abort(403, description="Invalid credentials.")
-            id_method = "email"
-            user = get_user_by(db_id, id_method, identifier)
-            if user is not None:
-                if check_password_hash(user.password_hash, args["password"]):
-                    authorized_user = update_user(db_id, user.user_id, time_extension=time_extension)
-                    return authorized_user
-                abort(403, description="Invalid credentials.")
-            abort(404, "User not found")
+            else:
+                abort(404, description="User not found.")
         else:
-            if not validate_auth_token(db_id, token):
-                abort(403, description="Invalid or expired token.")
-            authorized_user = update_user(db_id, args["user_id"], time_extension=time_extension)
+            user = get_user_by(db_id, "auth_token", get_auth_token())
+            if not validate_auth_token(db_id, get_auth_token()):
+                return abort(403, description="Invalid or expired token.")
+            if method == "extend" or method == "ext":
+                authorized_user = update_user(db_id, user.user_id, time_extension=time_extension)
+            elif method == "current" or method == "curr":
+                authorized_user = update_user(db_id, user.user_id, time_extension=time_extension, curr=True)
+            elif method == "revoke" or method == "rev":
+                authorized_user = update_user(db_id, user.user_id, revoke=True)
+            else:
+                abort(400, description="Invalid method.")
             return authorized_user

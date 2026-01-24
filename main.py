@@ -39,11 +39,11 @@ with app.app_context():
 
 api.add_resource(RegistryListResource, "/api/registry/")
 api.add_resource(RegistryLookupResource, "/api/registry/<db_id>/")
-api.add_resource(RegistryAuthenticateResource, "/api/registry/authenticate/<db_id>/<token>/")
+api.add_resource(RegistryAuthenticateResource, "/api/registry/authenticate/<db_id>/<method>/")
 
 api.add_resource(UserListResource, "/api/<db_id>/users/")
 api.add_resource(UserLookupResource, "/api/<db_id>/users/<id_method>/<identifier>/")
-api.add_resource(UserAuthenticateResource, "/api/<db_id>/users/authenticate/<int:time_extension>/<token>/")
+api.add_resource(UserAuthenticateResource, "/api/<db_id>/users/authenticate/<method>/<int:time_extension>/")
 
 if __name__ == "__main__":
     if testing == "True":

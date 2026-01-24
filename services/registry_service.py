@@ -17,6 +17,7 @@ def create_registry_entry(app_name:str): #creates a new registry entry
         db_id=db_id,
         db_secret=db_secret,
         app_name=app_name,
+        user_auth_scheme='{"notation": "integer", "allow_key": {"else": {"smaller_than": "5", "bigger_than": null, "allow": ["5"], "ban": null}}, "hierarchy": {"main": "advanced", "advanced": {"else": {"else": {"smaller_than": null, "bigger_than": "self", "allow": null, "ban": null}}}, "except": ["5"]}}',
         AO_addition_token=generate_AO_addition_token(),
     )
     
@@ -40,6 +41,19 @@ def patch_registry_entry(db_id, app_name=None, allowed_origins=None, AO_addition
         registry.AO_addition_token = AO_addition_token
     db.session.commit()
     return registry
+
+def get_reg_token(): #returns the AO addition token for a registry entry
+    token = request.headers.get("AO-Addition-Token")
+    if not token:
+        return None
+    return token
+
+def get_db_id():
+    db_id = request.headers.get("db-id")
+    if not db_id:
+        print("No db_id provided")
+        return None
+    return db_id
 
 def get_allowed_origins(partial=False): #returns a list of allowed origins
     with db.engine.connect() as connection:
@@ -68,6 +82,8 @@ def get_allowed_origins(partial=False): #returns a list of allowed origins
                 return authList
 
 def check_post_level_auth(db_id):
+    if not db_id:
+        return False
     registry_entry = get_registry_entry_by_id(db_id)
     if not registry_entry or not registry_entry.allowed_origins:
         return False
@@ -86,6 +102,8 @@ def check_get_level_auth(db_id):
     testing = os.getenv("TESTING")
     if testing == "True":
         return True
+    if not db_id:
+        return False
     registry_entry = get_registry_entry_by_id(db_id)
     allowed_origins = [origin.strip() for origin in registry_entry.allowed_origins.split(",") if origin.strip()]
     ALLOWED_BACKEND_ACCESS = get_allowed_origins(partial=True)
