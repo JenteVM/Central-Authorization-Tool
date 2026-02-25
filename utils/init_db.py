@@ -32,7 +32,7 @@ def init_registry_database(): #initializes the registry database, base instance,
                     db_secret=db_secret,
                     app_name="DefaultAllowedOrigin",
                     allowed_origins=DEFAULT_ALLOWED_ORIGIN,
-                    user_auth_scheme='{"notation": "integer", "allow_key": {"else": {"smaller_than": null, "bigger_than": "0", "allow": ["5"], "ban": null}}, "hierarchy": {"main": "advanced", "advanced": {"else": {"else": {"smaller_than": null, "bigger_than": "self", "allow": null, "ban": "5"}}}, "except": ["5"]}}',
+                    user_auth_scheme=os.getenv("DEFAULT_AUTH_SCHEME"),
                     authorized=True
                 )
                 db.session.add(new_entry)

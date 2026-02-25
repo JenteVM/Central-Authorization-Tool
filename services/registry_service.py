@@ -1,17 +1,26 @@
 import os
+import json
 from dotenv import load_dotenv
 from models.registry_models import RegistryModel
 from utils.db_utils import db, create_user_db, generate_AO_addition_token, generate_ids
+from services.user_service import get_all_users, softlock_checker, update_user
 from sqlalchemy.exc import IntegrityError
-from flask import request
+from flask import request, abort
 
-def get_registry_entries(): #gets all registry entries
-    return RegistryModel.query.all()
+def get_registry_entries(load_for_return=False): #gets all registry entries
+    registries = RegistryModel.query.all()
+    if load_for_return:
+        for registry in registries:
+            registry.user_auth_scheme = json.loads(registry.user_auth_scheme)
+    return registries
 
-def get_registry_entry_by_id(db_id:str): #gets a specific registry entry
-    return RegistryModel.query.filter_by(db_id=db_id).first()
+def get_registry_entry_by_id(db_id:str, load_for_return=False): #gets a specific registry entry
+    registry = RegistryModel.query.filter_by(db_id=db_id).first()
+    if registry and load_for_return:
+        registry.user_auth_scheme = json.loads(registry.user_auth_scheme)
+    return registry
 
-def create_registry_entry(app_name:str): #creates a new registry entry
+def create_registry_entry(app_name:str, load_for_return=False): #creates a new registry entry
     db_id, db_secret = generate_ids()
     new_entry = RegistryModel(
         db_id=db_id,
@@ -25,12 +34,13 @@ def create_registry_entry(app_name:str): #creates a new registry entry
         db.session.add(new_entry)
         db.session.commit()
         create_user_db(db_secret)
+        new_entry.user_auth_scheme = json.loads(new_entry.user_auth_scheme) if load_for_return else new_entry.user_auth_scheme
         return new_entry
     except IntegrityError:
         db.session.rollback()
         return None
 
-def patch_registry_entry(db_id, app_name=None, allowed_origins=None, AO_addition_token=None): #updates an existing registry entry
+def patch_registry_entry(db_id, app_name=None, allowed_origins=None, AO_addition_token=None, auth_scheme=None, translation=None, authorized=None, load_for_return=False): #updates an existing registry entry
     registry = get_registry_entry_by_id(db_id)
     if app_name:
         registry.app_name = app_name
@@ -39,7 +49,27 @@ def patch_registry_entry(db_id, app_name=None, allowed_origins=None, AO_addition
         registry.AO_addition_token = None
     if AO_addition_token:
         registry.AO_addition_token = AO_addition_token
+    if authorized is not None:
+        registry.authorized = authorized
+    if auth_scheme or translation:
+        users = get_all_users(db_id)
+        if translation:
+            if isinstance(translation, str):
+                translation = json.loads(translation)
+            for user in users:
+                try:
+                    user.auth_level = translation[str(user.auth_level)]
+                except KeyError:
+                    pass
+        if softlock_checker(db_id, forced_scheme=auth_scheme, users=users):
+            abort(401, description="Action would result in no more users with 'User Patch Auth Level (uPatchAL)' or 'Registry Patch Validate Actions (rPatchVA)' permissions.")
+        registry.user_auth_scheme = auth_scheme if auth_scheme else registry.user_auth_scheme
+        if translation:
+            for user in users:
+                update_user(db_id, user.user_id, auth_level=user.auth_level, omit_softlock_check=True)
     db.session.commit()
+    registry.user_auth_scheme = json.loads(str(registry.user_auth_scheme)) if load_for_return else registry.user_auth_scheme
+    print(registry) #avoid lazy loading issues
     return registry
 
 def get_reg_token(): #returns the AO addition token for a registry entry
@@ -51,7 +81,6 @@ def get_reg_token(): #returns the AO addition token for a registry entry
 def get_db_id():
     db_id = request.headers.get("db-id")
     if not db_id:
-        print("No db_id provided")
         return None
     return db_id
 

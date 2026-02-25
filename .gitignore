@@ -4,3 +4,4 @@ instance/
 .env
 dump.rdb
 index.html
+config.js

@@ -8,7 +8,7 @@ class UserModel(db.Model):
     email = db.Column(db.String(120), unique=True)
     password_hash = db.Column(db.String(128), nullable=False)
     show_email = db.Column(db.Boolean, default=True)
-    auth_level = db.Column(db.Integer, nullable=False)
+    auth_level = db.Column(db.String, nullable=False)
     auth_token = db.Column(db.String(120), unique=True)
     auth_token_expiration = db.Column(db.DateTime)
     creation_date = db.Column(db.DateTime)

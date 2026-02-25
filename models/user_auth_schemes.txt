@@ -1,11 +1,14 @@
+application: {appN*: schemeN}
+*can call it Central to do it centrally
+
 notations: integer OR string
 
 integer: allow_key AND hierachry
-string: translation_key AND allow_key AND hierachry
+string: translation_key AND allow_key AND hierarchy
 
 translation_key: {stringN: integerN}
 allow_key: {location*: {smaller_than: integer**, bigger_than: integer**, allow: list**, ban: list**}}
-hierachry: {main: option***, advanced****: {location*: {integer*: {greater_than: integer**, smaller_than: integer**, allow: list**, ban: list**}}}, except: list**}
+hierarchy: {main: option***, advanced****: {location*: {integer*: {greater_than: integer**, smaller_than: integer**, allow: list**, ban: list**}}}, except: list**}
 *can be "else"
 **optional string if notation is string (can be self in case of hierachry)
 ***either smaller_than (your int smaller than theirs), bigger_than (your int bigger than theirs), advanced (case to case basis)
