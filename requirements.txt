@@ -1,0 +1,9 @@
+Flask
+Flask-RESTful
+Flask-Cors
+waitress
+python-dotenv
+Flask-SQLAlchemy
+SQLAlchemy
+Flask-Limiter
+Werkzeug
