@@ -1,6 +1,8 @@
+"""module `user_model` defines the `UserModel` class."""
 from utils.db_utils import db, generate_user_id
 
 class UserModel(db.Model):
+    """class `UserModel` represents the user database table in the system."""
     __tablename__ = "users"
 
     user_id = db.Column(db.String(32), primary_key=True, default=generate_user_id)

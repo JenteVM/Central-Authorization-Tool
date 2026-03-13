@@ -1,3 +1,9 @@
+"""
+module `init_db` defines the function for initializing the registry database.
+
+functions:
+- `init_registry_database`: initializes the registry database, base instance, and base instance user.
+"""
 import os
 from flask import Flask, abort
 from flask_restful import Api
@@ -9,6 +15,7 @@ from werkzeug.security import generate_password_hash
 from dotenv import load_dotenv
 
 def init_registry_database(): #initializes the registry database, base instance, and base instance user so there is always a location to create new databases
+    """function `init_registry_database` initializes the registry database, base instance, and base instance user. Returns `db_id` on success or an `409 error` if the registry database already exists."""
     global db
     load_dotenv()
     instance_path = os.path.join(os.getcwd(), "instance")

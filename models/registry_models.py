@@ -1,6 +1,8 @@
+"""module `registry_models` defines the `RegistryModel` class. """
 from utils.db_utils import db
 
 class RegistryModel(db.Model):
+    """class `RegistryModel` represents the registry database table in the system."""
     __tablename__ = "registry"
 
     db_id = db.Column(db.String(12), primary_key=True)

@@ -1,19 +1,21 @@
-application: {appN*: schemeN}
-*can call it Central to do it centrally
-
 notations: integer OR string
+translation_key: {stringN: integerN}
+application: {appN*: schemeN}
+except: list**
+*can call it central to do it centrally
+**optionaly can include strings if notation is string
 
 integer: allow_key AND hierachry
 string: translation_key AND allow_key AND hierarchy
 
-translation_key: {stringN: integerN}
 allow_key: {location*: {smaller_than: integer**, bigger_than: integer**, allow: list**, ban: list**}}
-hierarchy: {main: option***, advanced****: {location*: {integer*: {greater_than: integer**, smaller_than: integer**, allow: list**, ban: list**}}}, except: list**}
+hierarchy: {main: option***, advanced****: {location*: {integer*: {bigger_than: integer**, smaller_than: integer**, allow: list**, ban: list**}}}, except: list**}
+except: list**
 *can be "else"
 **optional string if notation is string (can be self in case of hierachry)
 ***either smaller_than (your int smaller than theirs), bigger_than (your int bigger than theirs), advanced (case to case basis)
 ****can leave empty if main is not advanced
 
 examples:
-{"notation": "integer", "allow_key": {"else": {"smaller_than": null, "bigger_than": 16, "allow": [12], "ban": [20]}}, "hierachry": {"main": "bigger_than", "except": [1]}}
-{"notation": "string", "translation_key": {"user": 0, "admin": 1, "special": 5, "someone_else": 10}, "allow_key": {"get_all": {"smaller_than": 5, "bigger_than": null, "allow": [5], "ban": null}, "else": {"smaller_than": null, "bigger_than": null, "allow": ["someone_else"], "ban": ["special"]}}, "hierarchy": {"main": "smaller_than", "except": ["special"]}}
+'{"notation": "integer", "else": {"allow_key": {"else": {"smaller_than": null, "bigger_than": 5, "allow": null, "ban": null}}, "hierarchy": {"main": "advanced", "advanced": {"else": {"else": {"smaller_than": null, "bigger_than": "self+1", "allow": null, "ban": null}}}, "except": null}, "except": null}, "except": ["5"]}'
+'{"notation": "string", "translation_key": {"basic": "5"}, "else": {"allow_key": {"else": {"smaller_than": null, "bigger_than": "basic", "allow": null, "ban": null}}, "hierarchy": {"main": "advanced", "advanced": {"else": {"else": {"smaller_than": null, "bigger_than": "self+1", "allow": null, "ban": null}}}, "except": null}, "except": null}, "except": ["basic"]}'
