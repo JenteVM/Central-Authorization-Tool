@@ -284,7 +284,10 @@ def validate_actions(db_id:str, primary_application:str, fallback_application:st
         except json.JSONDecodeError as err:
             abort(400, description=f"Invalid syntax in provided scheme: {err}")
     else:
-        registry = RegistryModel.query.filter_by(db_id=db_id).first().user_auth_scheme
+        registry = RegistryModel.query.filter_by(db_id=db_id).first()
+        if not registry:
+            abort(404, description="Registry entry not found.")
+        registry = registry.user_auth_scheme
         registry = json.loads(registry)
     
     notation = registry["notation"]
