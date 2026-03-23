@@ -150,8 +150,8 @@ class RegistryLookupResource(Resource): #queries a singular registry instance
 
         optional arguments:
         - `app_name`: the new name of the application associated with the registry entry, *has to be provided in the headers*.
-        - `user_auth_scheme`: the new user authentication scheme for the registry entry read the wiki entry at [auth scheme guide](https://github.com/JenteVM/Central-Authorization-Tool/wiki/auth_scheme_guide/) for more information about required scheme details, *has to be provided in the headers*.
-        - `translation`: the new translation for the registry entry linking old auth levels to new ones. Read the wiki entry at [auth scheme guide](https://github.com/JenteVM/Central-Authorization-Tool/wiki/auth_scheme_guide/), *has to be provided in the headers*.
+        - `user_auth_scheme`: the new user authentication scheme for the registry entry read the wiki entry at [auth scheme guide](https://github.com/JenteVM/Central-Authorization-Tool/wiki/auth-scheme-guide/) for more information about required scheme details, *has to be provided in the headers*.
+        - `translation`: the new translation for the registry entry linking old auth levels to new ones. Read the wiki entry at [auth scheme guide](https://github.com/JenteVM/Central-Authorization-Tool/wiki/auth-scheme-guide/), *has to be provided in the headers*.
         - `authorized` (unused): the new authorization status for the registry entry, *has to be provided in the headers*.
 
         auth requirements:

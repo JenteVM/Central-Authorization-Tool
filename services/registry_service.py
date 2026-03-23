@@ -26,7 +26,7 @@ def get_registry_entries(load_for_return=False): #gets all registry entries
     registries = RegistryModel.query.all()
     if load_for_return:
         for registry in registries:
-            registry.user_auth_scheme = json.loads(registry.user_auth_scheme)
+            registry.user_auth_scheme = json.loads(registry.user_auth_scheme) if registry.user_auth_scheme else registry.user_auth_scheme
     return registries
 
 def get_registry_entry_by_id(db_id:str, load_for_return=False): #gets a specific registry entry
@@ -51,7 +51,7 @@ def create_registry_entry(app_name:str, load_for_return=False): #creates a new r
         db.session.add(new_entry)
         db.session.commit()
         create_user_db(db_secret)
-        new_entry.user_auth_scheme = json.loads(new_entry.user_auth_scheme) if load_for_return else new_entry.user_auth_scheme
+        new_entry.user_auth_scheme = json.loads(new_entry.user_auth_scheme) if load_for_return and new_entry.user_auth_scheme else new_entry.user_auth_scheme
         return new_entry
     except IntegrityError:
         db.session.rollback()
@@ -103,7 +103,7 @@ def patch_registry_entry(db_id, app_name=None, allowed_origins=None, AO_addition
             for user in users:
                 update_user(db_id, user.user_id, auth_level=user.auth_level, omit_softlock_check=True)
     db.session.commit()
-    registry.user_auth_scheme = json.loads(str(registry.user_auth_scheme)) if load_for_return else registry.user_auth_scheme
+    registry.user_auth_scheme = json.loads(str(registry.user_auth_scheme)) if load_for_return and registry.user_auth_scheme else registry.user_auth_scheme
     print(registry) #avoid lazy loading issues
     return registry
 
