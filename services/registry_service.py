@@ -33,7 +33,7 @@ def get_registry_entry_by_id(db_id:str, load_for_return=False): #gets a specific
     """function `get_registry_entry_by_id` retrieves the specified db entry and returns it (with json loaded if load_for_return is set to `True`)"""
     registry = RegistryModel.query.filter_by(db_id=db_id).first()
     if registry and load_for_return:
-        registry.user_auth_scheme = json.loads(registry.user_auth_scheme)
+        registry.user_auth_scheme = json.loads(registry.user_auth_scheme) if registry.user_auth_scheme else registry.user_auth_scheme
     return registry
 
 def create_registry_entry(app_name:str, load_for_return=False): #creates a new registry entry
@@ -43,7 +43,7 @@ def create_registry_entry(app_name:str, load_for_return=False): #creates a new r
         db_id=db_id,
         db_secret=db_secret,
         app_name=app_name,
-        user_auth_scheme='{"notation": "integer", "allow_key": {"else": {"smaller_than": "5", "bigger_than": null, "allow": ["5"], "ban": null}}, "hierarchy": {"main": "advanced", "advanced": {"else": {"else": {"smaller_than": null, "bigger_than": "self", "allow": null, "ban": null}}}, "except": ["5"]}}',
+        user_auth_scheme=os.getenv("DEFAULT_AUTH_SCHEME"),
         AO_addition_token=generate_AO_addition_token(),
     )
     
