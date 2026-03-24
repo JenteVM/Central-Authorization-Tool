@@ -13,6 +13,8 @@ I would recommend this application to anyone who doesn't care about frequent upd
 In my transition to the module approach for readability I did use AI assisted coding, I try and keep everything made by me so I do not think it is noticable much but this serves as a notice to anyone who is against the use of AI.
 
 ## Public Test
-The frontend is available for testing at https://public-tests.vercel.app/Central-Authorization-Tool/index.html. <br>
-The backend is available at (Currently not online). Make requests to this base + endpoint. <br> 
-The base user login info can be found on the testing page <br>
+The frontend is available for testing [here](https://public-tests.vercel.app/Central-Authorization-Tool/index.html). <br>
+The backend is available [here](https://central-authorization-tool.onrender.com/). Make requests to this base + endpoint. <br>
+The base user login info is as follows: <br>
+Username: "Test-1.0", Password: "Password125" <br>
+Please note that the database id changes as there is no persistent memory for the public test. The db_id can be found [here](https://central-authorization-tool.onrender.com/api/registry/)

@@ -6,8 +6,8 @@ This is an hobby project of mine. There may be big security flaws because of tha
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 0.4.x   | 🟩 |
-| < 0.4.0   | 🟥 |
+| 1.0.x   | 🟩 |
+| < 1.0.0   | 🟥 |
 
 ## Reporting a Vulnerability
 

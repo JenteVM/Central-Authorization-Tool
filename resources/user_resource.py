@@ -231,7 +231,7 @@ class UserAuthenticateResource(Resource): #authenticates a user against the data
                 if check_password_hash(user.password_hash, args["password"]):
                     authorized_user = update_user(html.escape(db_id) if db_id else None, user.user_id, time_extension=time_extension)
                     return authorized_user
-                abort(401, description="Invalid credentials.")
+                abort(401, description="Wrong password.")
             else:
                 abort(404, description="User not found.")
         else:
