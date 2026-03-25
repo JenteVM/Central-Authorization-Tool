@@ -179,7 +179,7 @@ def delete_user(db_id, method, value): #deletes a user from the specified databa
     user, app = get_user_by(db_id, method, value, full_info=True)
     if not user:
         abort(404, description="User not found.")
-    if  softlock_checker(db_id):
+    if  softlock_checker(db_id, user_id=user.user_id, delete=True):
         abort(401, description="Action would result in no more users with 'registry_patch_user_auth_scheme' permissions.") #currently not checking for user_patch_auth_level and user_post_new as is would be hierachical and thus more complex to check, but can be added in the future if needed
     with app.app_context():
         db.session.delete(user)
@@ -220,7 +220,7 @@ def validate_auth_token(db_id, token, bypassable=True): #checks if the user has 
             return False
         return True
 
-def softlock_checker(db_id, user_id=None, new_auth_level:int=None, forced_scheme=None, users=None): #validates that there is always an administrative user in the database
+def softlock_checker(db_id, user_id=None, new_auth_level:int=None, forced_scheme=None, users=None, delete=False): #validates that there is always an administrative user in the database
     """
     function `softlock_checker` checks if a softlock will be created under a given circumstance. Return `True` if there will be a softlock situation and `False` if there will not be a softlock situation.
 
@@ -232,6 +232,7 @@ def softlock_checker(db_id, user_id=None, new_auth_level:int=None, forced_scheme
     - `new_auth_level`: an `integer` representing the new auth level for the specified user.
     - `forced_scheme`: a `string` representing a forced authentication scheme to use for validation.
     - `users`: a `list` of `UserModel` objects to check for softlock situations.
+    - `delete`: a `boolean` indicating whether the check is for an user deletion.
 
     returns:
     - a `boolean` value indicating whether there is a softlock situation (`True` if there is a softlock situation, `False` if there is no softlock situation).
@@ -244,9 +245,10 @@ def softlock_checker(db_id, user_id=None, new_auth_level:int=None, forced_scheme
     for user in users:
         if user_id and user == patched_user:
             user.auth_level = new_auth_level
-        registry_patch_user_auth_scheme = validate_actions(db_id=db_id, primary_application="central_authorization_tool", fallback_application="central_application", primary_location="registry_patch_user_auth_scheme", fallback_location="registry_patch", user=user, forced_scheme=forced_scheme)
-        if registry_patch_user_auth_scheme:
-            return False
+        if not delete or user_id != user.user_id:
+            registry_patch_user_auth_scheme = validate_actions(db_id=db_id, primary_application="central_authorization_tool", fallback_application="central_application", primary_location="registry_patch_user_auth_scheme", fallback_location="registry_patch", user=user, forced_scheme=forced_scheme)
+            if registry_patch_user_auth_scheme:
+                return False
     return True
 
 def validate_actions(db_id:str, primary_application:str, fallback_application:str, primary_location:str, fallback_location:str, user_id:str=None, auth_token:str=None, user=None, use_hierarchy:bool=False, act_on:str=None, user_is_act_on=False, act_on_is_int=False, forced_scheme:str=None, bypassable=False): #validates if the provided token allows actions at the specified location
