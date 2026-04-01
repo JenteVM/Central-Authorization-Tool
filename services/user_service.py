@@ -276,6 +276,7 @@ def validate_actions(db_id:str, primary_application:str, fallback_application:st
     returns:
     - a `boolean` value indicating if the user has sufficient permissions to perform the desired action. `True` if the user has sufficient permissions, `False` if the user does not have sufficient permissions.
     """
+    print(f"called for location {primary_location} with act_on {act_on}.")
     load_dotenv()
     testing = os.getenv("TESTING")
     if testing == "True" and bypassable:
@@ -322,6 +323,7 @@ def validate_actions(db_id:str, primary_application:str, fallback_application:st
                 user = UserModel.query.filter_by(auth_token=auth_token).where(UserModel.auth_token_expiration > datetime.now()).first()
         if user is None:
             abort(404, description="User not found.")
+        user_id = user.user_id
         translation_key = None
         try:
             user = int(user.auth_level)
@@ -391,9 +393,11 @@ def validate_actions(db_id:str, primary_application:str, fallback_application:st
     elif main == "advanced":
         advanced = hierarchy["advanced"]
         bigger_than, smaller_than, allow, ban = unpack_settings(key=advanced, primary_location=primary_location, fallback_location=fallback_location, notation=notation, translation_key=registry["translation_key"] if notation == "string" else None, handle_self=True, self=user)
+        print(bigger_than, smaller_than, allow, ban, exceptions)
         if str(user) in exceptions or str(act_on_level) in allow:
             return True
-        if not ban or str(act_on_level) not in ban:
+        if str(act_on_level) not in ban and int(act_on_level) not in ban:
+            print(":/")
             if bigger_than is not None and act_on_level < bigger_than:
                 return True
             elif smaller_than is not None and act_on_level > smaller_than:

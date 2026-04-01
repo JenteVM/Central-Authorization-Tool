@@ -20,6 +20,12 @@ user_args.add_argument("email", type=str)
 user_args.add_argument("password", type=str, required=True, help="Password is required.")
 user_args.add_argument("auth_level", type=str)
 
+user_patch_args = reqparse.RequestParser()
+user_patch_args.add_argument("username", type=str, default=None)
+user_patch_args.add_argument("email", type=str, default=None)
+user_patch_args.add_argument("password", type=str, default=None)
+user_patch_args.add_argument("auth_level", type=str, default=None)
+
 user_auth_args = reqparse.RequestParser()
 user_auth_args.add_argument("username_or_email", type=str, default=None)
 user_auth_args.add_argument("password", type=str, default=None)
@@ -154,7 +160,7 @@ class UserLookupResource(Resource): #queries a singular user instance
             abort(403, description="Unauthorized Origin.")
         if not validate_auth_token(html.escape(db_id) if db_id else None, html.escape(get_auth_token()) if get_auth_token() else None):
             return abort(401, description="Invalid or expired token.")
-        args = user_args.parse_args()
+        args = user_patch_args.parse_args()
         user = get_user_by(html.escape(db_id) if db_id else None, id_method, identifier)
         if user is None:
             abort(404, description="User not found.")
@@ -168,6 +174,8 @@ class UserLookupResource(Resource): #queries a singular user instance
             if not validate_actions(db_id=html.escape(db_id) if db_id else None, primary_application="central_authorization_tool", fallback_application="central_application", primary_location="user_patch_password", fallback_location="user_patch", auth_token=html.escape(get_auth_token()) if get_auth_token() else None, use_hierarchy=True, act_on=user.user_id, user_is_act_on=True):
                 abort(403, description="Insufficient permissions.")
         if args["auth_level"]:
+            if not validate_actions(db_id=html.escape(db_id) if db_id else None, primary_application="central_authorization_tool", fallback_application="central_application", primary_location="user_patch_auth_level", fallback_location="user_patch", auth_token=html.escape(get_auth_token()) if get_auth_token() else None, use_hierarchy=True, act_on=user.user_id):
+                abort(403, description="Insufficient permissions.")
             if not validate_actions(db_id=html.escape(db_id) if db_id else None, primary_application="central_authorization_tool", fallback_application="central_application", primary_location="user_patch_auth_level", fallback_location="user_patch", auth_token=html.escape(get_auth_token()) if get_auth_token() else None, use_hierarchy=True, act_on=args["auth_level"], act_on_is_int=True):
                 abort(403, description="Insufficient permissions.")
         updated_user = update_user(
