@@ -14,7 +14,7 @@ In my transition to the module approach for readability I did use AI assisted co
 
 ## Public Test
 The frontend is available for testing [here](https://public-tests.vercel.app/Central-Authorization-Tool/index.html). <br>
-The backend is available [here](https://central-authorization-tool.onrender.com/). Make requests to this base + endpoint. <br>
+The backend is available [here](https://auth.jhcp.dev/). Make requests to this base + endpoint. <br>
 The base user login info is as follows: <br>
-Username: "Test-1.0", Password: "Password125" <br>
-Please note that the database id changes as there is no persistent memory for the public test. The db_id can be found [here](https://central-authorization-tool.onrender.com/api/registry/)
+Username: "DemoUser101", Password: "DemoPassword125", db_id: "SHl1ZToxQX0"<br>
+It is locally hosted, so please do not utilize this for anything but to test the system.
